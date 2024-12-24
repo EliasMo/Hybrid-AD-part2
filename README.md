@@ -61,24 +61,138 @@ https://learn.microsoft.com/en-us/entra/identity/hybrid/connect/reference-connec
 
 ## SQL Server Configuration 
 ### 2.1 Download and Installation 
-- SQL Server setup
+- SQL Server 2022 Express setup
+
+![image](https://github.com/user-attachments/assets/a651ae07-c600-48e8-b56b-41147f35f4e0)
+
+- Run SQL Server Installation Center and choose Basic
+
+![image](https://github.com/user-attachments/assets/ee055bb3-7128-4418-a4f9-b7d475e9db7c)
+
+- Install SSMS: this will be used to manage the SQL Server
+
+![image](https://github.com/user-attachments/assets/90709a34-2e03-4c12-842e-ccfd443ca63f)
+
+![image](https://github.com/user-attachments/assets/b08a2156-644f-4d88-9738-16d1bb499da0)
+
+SMSS will be used for: Creating the databases, security and permissions , writing queries and testing them, monitoring database performance, managing backups.
+
+- Restart and go to SQL Management Studio
+
+  Use the settings: Server type: Database Engine, localhost\SQLEXPRESS,Authentication: Windows Authentication.
+
+  
+![image](https://github.com/user-attachments/assets/e63d0e35-661f-4ed3-a402-ad2f88029d7a)
+
+- If you have SSL certificate error - you can fix by clicking the trust server certificate box
+
+![image](https://github.com/user-attachments/assets/420f40bb-80ac-4620-be4d-6bc428710131)
 
 
+### 2.2 Database
+- Naming the database name as HybridADManagment
+
+  ![image](https://github.com/user-attachments/assets/d9504797-6752-48a2-9448-8ddcf5d00108)
+
+- Create Query and create ADUserSync table
+
+![image](https://github.com/user-attachments/assets/76c3316d-740a-4820-9370-284866fb4271)
+
+This is the code if you want to try:
+
+```sql
+USE HybridADManagement
+GO
 
 
+CREATE TABLE ADUserSync (
+	UserID INT IDENTITY(1,1) PRIMARY KEY,
+	SamAccountName NVARCHAR(50) NOT NULL,
+	UserPrincipalName NVARCHAR(100) NOT NULL,
+	Email NVARCHAR(100),
+	Department NVARCHAR(50),
+	LastSyncTime DATETIME,
+	SyncStatus NVARCHAR(20),
+	AzureObjectID NVARCHAR(100),
+	LastModifiedDate DATETIME
+)
+```
 
-- Basic configuration
+- Create ADSyncLogs table 
 
-### 2.2 Security Configuration 
-- Authentication setup
-- Database creation
-- User permissions
+![image](https://github.com/user-attachments/assets/e7fcbef4-05c1-4e2d-b930-3ba2dd3146b3)
 
-## 3. Verification and Testing 
-### 3.1 Identity Verification 
-- Test user synchronization
-- Verifty user access
-- Document test results
+```sql
+USE HybridADManagement
+GO
+
+CREATE TABLE ADSyncLogs (
+	LogID INT IDENTITY (1,1) PRIMARY KEY,
+	LogTime DATETIME DEFAULT GETDATE(),
+	LogLevel NVARCHAR(10),
+	LogMessage NVARCHAR(MAX),
+	Source NVARCHAR(50)
+)
+```
+
+- User creation for testing
+
+![image](https://github.com/user-attachments/assets/17982920-9876-4939-9906-ad0736e8795f)
+
+ 
+```sql
+USE HybridADManagement
+GO
+
+-- Test--
+INSERT INTO ADUserSync
+(SamAccountName, UserPrincipalName, Email, Department, LastSyncTime, SyncStatus, AzureObjectID, LastModifiedDate)
+VALUES
+('jsmith', 'john.smith@internalcompany.com', 'john.smith@internalcompany.com', 'IT', GETDATE(), 'Synced', 'AAD-123-456', GETDATE()),
+('awhite', 'alice.white@internalcompany.com', 'alice.white@internalcompany.com', 'HR', GETDATE(), 'PendingSync', 'AAD-789-012', GETDATE());
 
 
+INSERT INTO ADSyncLogs 
+(LogLevel, LogMessage, Source)
+VALUES
+('INFO', 'Initial sync completed for jsmith', 'Azure AD Connect'),
+('WARNING', 'Sync pending for awhite', 'Azure AD Connect');
+```
+  
+![image](https://github.com/user-attachments/assets/6c9cf7be-b9ec-46b8-a79c-64c02e35afe1)
+
+# Project Status and Summary
+
+## Completed 
+
+### 1. Microsoft Entra Connect Setup
+- Successfully installed Microsoft Entra Connect Sync
+- Configured with Express Settings
+- Established connection between on-premises AD and Azure AD
+- Resolved initial configuration challenges:
+  - TLS 1.2 implementation
+  - IE Enhanced Security settings
+  - Global Administrator permissions
+
+### 2. SQL Server Implementation
+- Installed SQL Server 2022 Express Edition
+- Configured SQL Server Management Studio (SSMS)
+- Created HybridADManagement database
+- Implemented key database components:
+  - ADUserSync table for user synchronization tracking
+  - ADSyncLogs table for monitoring and auditing
+  - Basic test
+
+## Future
+- Monitoring and alerting setup
+- Integration with additional service
+
+## Used
+- Windows Server 2022
+- SQL Server 2022 Express
+- Microsoft Entra Connect
+- Azure Active Directory
+- SQL Server Management Studio
+
+This implementation provides a foundation for hybrid identity management, enabling seamless integration between on-premises Active Directory and cloud services.
 
